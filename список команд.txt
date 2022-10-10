@@ -1,0 +1,73 @@
+ivan_user = User.objects.create_user(username = 'Иван', email = 'i@mail.ru', password = '123')
+kolia_user = User.objects.create_user(username = 'Коля', email = 'k@mail.ru', password = '123')
+
+ivan = Author.objects.create(user = ivan_user)
+kolia = Author.objects.create(user = kolia_user)
+
+cat_phi = Category.objects.create(name = "Физика")
+cat_chy = Category.objects.create(name = "Химия")
+cat_his = Category.objects.create(name = "История")
+cat_mat = Category.objects.create(name = "Математика")
+
+text_article_his_phy = "статья про историю Физики"
+text_article_his_chy = "статья про историю Химии"
+text_news_mat = "Математическая новость"
+
+article_ivan = Post.objects.create(author = ivan, post_type = Post.article, title = "статья_про_историю_Физики_Ивана", text = text_article_his_phy)
+article_kolia = Post.objects.create(author = kolia, post_type = Post.article, title = "статья_про_историю_Химии_Коли", text = text_article_his_chy)
+news_ivan = Post.objects.create(author = ivan, post_type = Post.news, title = "новость_про_Математику_Ивана", text = text_news_mat)
+
+PostCategory.objects.create(post = article_ivan, category = cat_his)
+PostCategory.objects.create(post = article_ivan, category = cat_phi)
+PostCategory.objects.create(post = article_kolia, category = cat_his)
+PostCategory.objects.create(post = article_kolia, category = cat_chy)
+PostCategory.objects.create(post = news_ivan, category = cat_mat)
+
+comment1 = Comment.objects.create(post = article_ivan, user = kolia.user, text = "лол")
+comment2 = Comment.objects.create(post = article_kolia, user = ivan.user, text = "кек")
+comment3 = Comment.objects.create(post = news_ivan, user = kolia.user, text = "зачет")
+comment4 = Comment.objects.create(post = news_ivan, user = ivan.user, text = "моя статья")
+
+random_many_like = [article_ivan, article_kolia, news_ivan, comment1, comment2, comment3, comment4]
+
+import random
+
+for i in range(20):
+     random_obj = random.choice(random_many_like)
+     if i % 2:
+         random_obj.like()
+     else:
+         random_obj.dislike()
+
+rating_ivan = (sum([post.rating*3 for post in Post.objects.filter(author=ivan)]) + sum([comment.rating for comment in Comment.objects.filter(user=ivan.user)]) + sum([comment.rating for comment in Comment.objects.filter(post__author=ivan)]))
+
+ivan.update_rating(rating_ivan)
+
+
+rating_kolia = (sum([post.rating*3 for post in Post.objects.filter(author=kolia)])  + sum([comment.rating for comment in Comment.objects.filter(user=kolia.user)]) + sum([comment.rating for comment in Comment.objects.filter(post__author=kolia)]))
+
+kolia.update_rating(rating_kolia) 
+
+one_author = Author.objects.all().order_by('-rating')[0]
+
+print("Победитель", one_author.user.username)
+
+print("Рейтинг:", one_author.rating)
+
+best_article = Post.objects.filter(post_type = Post.article).order_by('-rating')[0]
+
+print("Лучшая статья")
+print("Дата:", best_article.created)
+print("Автор:", best_article.author.user.username)
+print("Рейтинг:", best_article.rating)
+print("Заголовок:", best_article.title)
+print("Превью:", best_article.preview())
+
+
+print("Комментарии к ней")
+for comment in Comment.objects.filter(post = best_article):
+print("Дата:", comment.created)
+print("Автор:", comment.user.username)
+print("Рейтинг:", comment.rating)
+print("Комментарий:", comment.text)
+    
